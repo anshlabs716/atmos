@@ -1,0 +1,8 @@
+{
+  "name": "Atmos",
+  "description": "Atmos — Weather, beautifully understood. A polished, privacy-first Android weather application with expressive Material 3 design and immersive animations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
