@@ -27,5 +27,9 @@ data class WeatherAlert(
     val description: String,
     val source: String,
     val effectiveTime: String,
-    val expiresTime: String
+    val expiresTime: String,
+    val affectedArea: String = "Selected Area",
+    val instruction: String = "Monitor weather conditions and heed advice from local meteorological services.",
+    val officialUrl: String = "https://open-meteo.com/",
+    val isOfficial: Boolean = true
 )

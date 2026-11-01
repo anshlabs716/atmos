@@ -1,0 +1,1098 @@
+# ATMOS — COMPLETE FUNCTIONALITY, CUSTOMIZATION & QUALITY OVERHAUL
+
+## Role and mission
+
+You are the senior Android engineer, UI/UX engineer, weather-data engineer and QA engineer responsible for finishing **Atmos**, an existing native Android weather application.
+
+The existing generated UI is PERFECT. The visual direction has already been approved.
+
+**Your job is NOT to redesign Atmos from scratch. Your job is to preserve its existing visual identity, inspect the entire project, and transform it into a genuinely functional, highly customizable Android weather application.**
+
+The current project has major shortcomings:
+- Some controls are decorative or do nothing.
+- Customization options are insufficient.
+- Android permissions and background functionality are incomplete.
+- Weather providers are not properly configurable.
+- Radar and maps need real data and interaction.
+- Weather alerts need to work.
+- Gyroscope parallax needs to be significantly stronger.
+- Weather illustrations look cheap and need professional-quality assets.
+- The application must be tested beyond simply rendering its screens.
+
+Do not just explain how to fix these issues. Inspect the existing project and implement the fixes in the actual codebase.
+
+If a tool, API, credential or external service is unavailable, identify the blocker and implement the best working alternative without fabricating successful functionality.
+
+---
+
+# 1. PROTECT THE EXISTING UI
+
+This is the most important instruction.
+
+Do not replace the current UI with a new design.
+
+Before changing code:
+1. Inspect the entire repository.
+2. Identify the existing screens, components, theme, navigation and visual assets.
+3. Identify which controls already work.
+4. Identify which controls are placeholders.
+5. Identify the current weather provider, storage, permissions and dependencies.
+6. Produce a concise implementation checklist.
+7. Fix the existing implementation incrementally.
+
+Preserve:
+- The existing Atmos branding.
+- The current home-screen composition.
+- The existing Material 3 design language.
+- Rounded cards and established spacing.
+- Typography and visual hierarchy.
+- Existing screen layouts.
+- The weather hero's composition.
+- The approved hourly and daily forecast designs.
+- The current bottom navigation.
+
+Improve the quality of assets, interactions and functionality without destroying the existing visual design.
+
+Do not remove features simply because they are difficult to implement.
+
+If a screen needs structural changes to become functional, make the smallest changes necessary while preserving its appearance.
+
+---
+
+# 2. MAKE EVERY CONTROL FUNCTIONAL
+
+Audit every screen, button, card, menu, icon, switch, slider, dropdown, tab, navigation destination and gesture.
+
+Create an inventory of all interactive elements.
+
+For each element, verify:
+- It responds to user interaction.
+- It performs the action indicated by its label.
+- It updates application state correctly.
+- Changes persist when appropriate.
+- It provides feedback when an action succeeds or fails.
+- It displays a meaningful loading state where needed.
+- It handles unavailable data and errors.
+
+Examples:
+
+- Tapping a saved city opens that city's weather.
+- Selecting a temperature unit updates every relevant temperature.
+- Tapping the radar layer selector changes the displayed layer.
+- Tapping an alert opens its full details.
+- Tapping the location button requests location permission when necessary.
+- Toggling animations actually changes animation behaviour.
+- Changing a provider actually changes the source of weather data.
+- Tapping refresh fetches updated data.
+- Settings switches remain in their chosen state after restarting the app.
+- The Settings, Radar and Locations destinations open real screens.
+- Map controls operate the actual map.
+- Search returns selectable locations.
+
+Do not leave empty onClick handlers, fake toggles, placeholder dialogs or controls that only animate without performing their advertised action.
+
+Use a central state-management approach with ViewModels, repositories and observable state.
+
+Create a final functionality audit that lists every screen and the actual behaviour of its controls.
+
+---
+
+# 3. ADVANCED CUSTOMIZATION
+
+Atmos needs significantly more user customization.
+
+Create a comprehensive Settings experience using the existing visual language.
+
+Organise it into clear sections, with search if the settings become extensive.
+
+## 3.1 Appearance
+
+Provide:
+- Light theme.
+- Dark theme.
+- Follow system theme.
+- Dynamic Material You colours where supported.
+- Multiple curated accent palettes.
+- Custom accent colour selection.
+- Adjustable background appearance.
+- Weather artwork intensity.
+- Compact, balanced and spacious density options.
+- Adjustable corner radius presets.
+- Adjustable card appearance.
+- Adjustable card transparency where appropriate.
+- Adjustable weather icon style.
+- Adjustable temperature text emphasis.
+- Adjustable animation intensity.
+- Adjustable motion/parallax intensity.
+- Adjustable forecast card size.
+- Configurable home-screen section visibility.
+- Configurable home-screen section order.
+
+Do not offer arbitrary controls that have no visual effect. Every customization setting must be connected to the real UI.
+
+Provide sensible defaults matching the existing approved design.
+
+## 3.2 Home-screen customization
+
+Let users choose which sections appear and their order.
+
+Possible sections:
+- Current weather hero.
+- Hourly forecast.
+- Precipitation.
+- Daily forecast.
+- Weather details.
+- Sunrise and sunset.
+- Air quality.
+- Weather alerts.
+- Additional forecast information.
+
+Allow users to:
+- Hide optional sections.
+- Reorder sections.
+- Choose available metric cards.
+- Choose which information appears in the hero.
+- Choose forecast duration where supported.
+- Change hourly forecast display density.
+
+Do not allow hiding critical active severe-weather warnings through a setting that could make them silently disappear. Optional dashboard sections can be hidden, but important active warnings must remain accessible.
+
+Persist the configuration using DataStore.
+
+## 3.3 Weather units
+
+Support appropriate unit selections for:
+- Temperature: Celsius and Fahrenheit.
+- Wind speed: km/h, m/s, mph, knots.
+- Precipitation: millimetres and inches.
+- Pressure: hPa, mbar, inHg and other sensible supported units.
+- Visibility: kilometres and miles.
+- Time: 12-hour and 24-hour.
+
+Ensure unit changes update every relevant screen, chart, card, alert summary and tooltip.
+
+Never merely relabel a value without converting it.
+
+## 3.4 Forecast customization
+
+Allow the user to configure:
+- Preferred forecast provider.
+- Automatic provider selection, if implemented.
+- Hourly forecast range.
+- Daily forecast range, subject to actual provider support.
+- Refresh interval within sensible limits.
+- Default location.
+- Saved location order.
+- Precipitation display.
+- Weather metric cards.
+- Forecast detail level.
+
+Clearly indicate unavailable features instead of pretending every provider offers identical data.
+
+---
+
+# 4. REAL AND CONFIGURABLE WEATHER PROVIDERS
+
+Weather data must come from actual services.
+
+Build a proper provider abstraction rather than scattering provider-specific API calls throughout the UI.
+
+## 4.1 Provider management screen
+
+Create a dedicated **Weather Providers** section in Settings.
+
+Users should be able to:
+- View available providers.
+- See which provider is active.
+- Choose a preferred provider.
+- Configure supported provider options.
+- Enter their own API key when a provider requires one.
+- Validate provider configuration.
+- Test connectivity.
+- View provider attribution.
+- View supported data capabilities.
+- View the last successful update.
+- See provider errors.
+- Remove or reset a custom configuration.
+- Configure automatic fallback if supported.
+
+Distinguish clearly between:
+- Providers available without credentials.
+- Providers requiring a free API key.
+- Providers requiring a paid plan.
+- Providers that are unavailable or not yet implemented.
+
+Never pretend an API key is valid without testing the provider's actual response.
+
+Do not hardcode secret API keys into the source code.
+
+Use appropriate local protection for sensitive credentials, and avoid logging them.
+
+## 4.2 Provider architecture
+
+Create interfaces for capabilities such as:
+- Current conditions.
+- Hourly forecast.
+- Daily forecast.
+- Precipitation.
+- Air quality.
+- Weather alerts.
+- Historical weather, if supported.
+- Weather maps and radar.
+
+Different providers may implement different capabilities.
+
+For example:
+
+`WeatherProvider` should expose a consistent domain model, while individual adapters translate each provider's API response into that model.
+
+Use a provider registry and a repository layer.
+
+Keep provider-specific response objects separate from UI models.
+
+Do not couple the Compose UI to a specific API.
+
+## 4.3 Initial providers
+
+Investigate suitable providers, starting with:
+
+- Open-Meteo for weather forecasts.
+- The Australian Bureau of Meteorology (BOM) for relevant Australian forecasts and official warnings where accessible.
+- Other legitimate providers for additional regional coverage.
+- Suitable air-quality providers.
+- Suitable radar and precipitation-tile providers.
+
+Check current API documentation, supported regions, quotas, attribution requirements, licensing and terms before integrating a provider.
+
+Do not assume that every provider offers every capability.
+
+Do not scrape websites in violation of their terms.
+
+Do not use unofficial endpoints without understanding their stability and restrictions.
+
+## 4.4 Provider selection and fallback
+
+When the user chooses a provider, Atmos must actually request data from that provider.
+
+Implement:
+- Provider-specific adapters.
+- Connection testing.
+- Error reporting.
+- Data freshness indicators.
+- Request cancellation.
+- Timeouts.
+- Rate-limit handling.
+- Sensible retries.
+- Cache handling.
+- Optional fallback to another configured provider.
+
+Never silently switch providers without informing the user when that could affect the displayed data.
+
+Label the source of weather information appropriately.
+
+---
+
+# 5. REAL WEATHER DATA
+
+Remove fabricated weather data from production screens.
+
+Use real responses for:
+- Current temperature.
+- Conditions.
+- Feels-like temperature.
+- Humidity.
+- Wind speed and direction.
+- UV index.
+- Atmospheric pressure.
+- Visibility.
+- Dew point.
+- Hourly forecast.
+- Daily forecast.
+- Precipitation probability.
+- Expected rainfall.
+- Sunrise and sunset.
+- Air quality.
+- Alerts.
+
+When a data field is unavailable, show an appropriate unavailable state or omit that specific metric.
+
+Do not substitute zero for missing data.
+
+Do not display stale cached data as though it were a fresh live result.
+
+Display a last-updated timestamp.
+
+Allow users to refresh weather manually.
+
+Use background refresh only when configured and technically appropriate.
+
+---
+
+# 6. WORKING WEATHER ALERTS
+
+Weather alerts are a core feature.
+
+Implement a real alert pipeline that obtains alerts from a suitable provider.
+
+## 6.1 Alert functionality
+
+Support:
+- Active alerts.
+- Alert title.
+- Alert severity.
+- Alert description.
+- Issuing authority.
+- Affected region.
+- Start and expiry times where supplied.
+- Official source link.
+- Last update.
+- Alert details screen.
+
+Where the provider supplies structured alert geometry, show the affected area on the map when possible.
+
+Prioritise warnings relevant to the selected location.
+
+Do not fabricate warnings or infer an official warning merely from a forecast.
+
+Clearly distinguish official alerts from Atmos-generated informational notifications.
+
+## 6.2 Notification controls
+
+Allow users to configure:
+- Enable or disable weather notifications.
+- Severe-weather warnings.
+- Rain notifications, where reliable forecast data supports them.
+- High-temperature notifications.
+- Other supported alert categories.
+- Notification quiet hours.
+- Notification channels by category where appropriate.
+
+Respect Android notification permission requirements.
+
+Severe-weather notifications must only be described as guaranteed if the implemented delivery mechanism can actually provide that guarantee. Explain the limitations of periodic background checks and operating-system restrictions.
+
+Do not promise emergency-grade delivery.
+
+## 6.3 Notification implementation
+
+Use WorkManager for appropriate periodic work.
+
+Use foreground services only when a genuine user-visible ongoing task requires one and Android's rules permit it.
+
+Handle notification permission denial gracefully.
+
+Create proper notification channels.
+
+Deduplicate notifications so the same alert is not repeatedly sent.
+
+Update or cancel notifications when an alert changes or expires.
+
+Persist alert identifiers and state as appropriate.
+
+Test alert delivery, cancellation and duplicate prevention.
+
+---
+
+# 7. ANDROID PERMISSIONS — REAL IMPLEMENTATION
+
+Audit the app's AndroidManifest.xml and runtime permission handling.
+
+Request only permissions that are necessary for implemented features.
+
+The following is a permission planning checklist, not a requirement to request every permission indiscriminately.
+
+## 7.1 Required network permissions
+
+Where required by the application:
+
+- `android.permission.INTERNET`
+- `android.permission.ACCESS_NETWORK_STATE`
+- `android.permission.ACCESS_WIFI_STATE`
+
+Network and Wi-Fi state permissions are generally normal permissions rather than runtime consent dialogs.
+
+Use network connectivity information to improve error handling and offline indicators.
+
+Do not promise to identify every Wi-Fi connection detail when Android restricts access.
+
+## 7.2 Location permissions
+
+Support:
+- `android.permission.ACCESS_COARSE_LOCATION`
+- `android.permission.ACCESS_FINE_LOCATION`
+
+Implement the actual runtime permission flow.
+
+Requirements:
+- Explain why location is useful.
+- Request permission in context.
+- Handle approximate location.
+- Handle precise location when granted.
+- Handle denial.
+- Handle permanent denial.
+- Provide a way to open Android app settings when appropriate.
+- Continue supporting manual city selection without location access.
+
+Do not request precise location if approximate location is sufficient for the requested operation.
+
+Do not request location automatically on first launch without explaining the purpose.
+
+## 7.3 Background location
+
+`android.permission.ACCESS_BACKGROUND_LOCATION`
+
+Only include and request this if a real, user-enabled background-location feature requires it and complies with Android platform and distribution policies.
+
+For a weather app, prefer using the selected saved city for background alerts where possible.
+
+If background location is implemented:
+- Explain its purpose.
+- Request foreground location first.
+- Follow the Android-version-specific permission flow.
+- Respect user denial.
+- Provide an opt-in setting.
+- Explain the relevant privacy implications.
+- Stop unnecessary background location use when disabled.
+
+Do not assume declaring the permission grants access.
+
+## 7.4 Foreground services
+
+If a legitimate foreground-service feature is implemented, configure the appropriate permissions and service type for the target Android version.
+
+Possible declarations, only when justified, include:
+
+- `android.permission.FOREGROUND_SERVICE`
+- `android.permission.FOREGROUND_SERVICE_LOCATION`, if a qualifying location foreground service is implemented.
+
+Do not create a permanent foreground service merely to refresh the weather.
+
+Respect Android's restrictions on starting foreground services from the background.
+
+## 7.5 Boot completion
+
+`android.permission.RECEIVE_BOOT_COMPLETED`
+
+Only use this if a genuine feature needs to restore an eligible scheduled task after reboot.
+
+Do not start unnecessary services at boot.
+
+Restore only the user's enabled features and respect platform restrictions.
+
+## 7.6 Wake lock
+
+`android.permission.WAKE_LOCK`
+
+Only add this if a specific operation genuinely requires keeping the device awake.
+
+Weather fetching and ordinary UI animations should not need a permanent wake lock.
+
+Use the shortest possible wake period and release it reliably.
+
+## 7.7 Notifications
+
+`android.permission.POST_NOTIFICATIONS`
+
+On Android versions where runtime notification permission applies:
+- Request it at an appropriate time.
+- Explain its value.
+- Handle denial.
+- Do not repeatedly prompt the user.
+- Keep in-app alerts accessible even when notifications are disabled.
+
+## 7.8 Optional permissions
+
+Evaluate these individually.
+
+### Read phone state
+
+`android.permission.READ_PHONE_STATE`
+
+Do not request this for ordinary weather functionality.
+
+Only include it if a specific, legitimate implemented feature truly requires it. Weather forecasts, maps and ordinary notification handling should not require reading phone state.
+
+### Ignore battery optimizations
+
+`android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`
+
+Do not request battery-optimization exemption by default.
+
+First implement normal Android-compatible scheduling.
+
+Only consider requesting an exemption if there is a genuinely qualifying, user-requested feature and the app's distribution policies permit it. Explain the consequences and allow the user to decline.
+
+### Vibration
+
+`android.permission.VIBRATE`
+
+Use only for actual optional haptic feedback or notification behaviour where applicable.
+
+Provide an option to disable app-controlled haptics.
+
+## 7.9 Permission management screen
+
+Create an in-app Permissions and Background Behaviour screen.
+
+Show:
+- Permission or capability.
+- Why Atmos uses it.
+- Current permission state.
+- Whether it is required or optional for a particular feature.
+- A control to request permission where appropriate.
+- A link to Android settings when required.
+- A useful explanation if denied.
+
+Reflect the real Android permission state. Do not store a fake `granted` flag in DataStore and treat it as authoritative.
+
+Re-check permissions when returning from Android settings.
+
+Handle permission revocation at any time.
+
+---
+
+# 8. RADAR AND MAPS — ESRI + OPENSTREETMAP
+
+Radar must be a real interactive map, not a decorative screenshot.
+
+Use a maintainable map-provider abstraction.
+
+## 8.1 Map engine
+
+Evaluate a suitable Android-compatible mapping SDK, such as MapLibre Native, for the interactive map.
+
+Integrate:
+- OpenStreetMap-compatible map sources.
+- Esri basemaps where permitted by the selected service and account.
+- Actual precipitation or weather-radar overlays from a suitable licensed data source.
+
+**Esri and OpenStreetMap are map sources, not substitutes for a live radar data feed.**
+
+The radar imagery must come from a real weather/radar provider with documented tile or map-service support.
+
+Do not assume Esri or OSM provides live precipitation radar by itself.
+
+## 8.2 Basemap options
+
+Provide a map-style selector with available, properly configured options such as:
+- OpenStreetMap standard.
+- Esri World Topographic, where permitted.
+- Esri World Imagery, where permitted.
+- Additional supported map styles.
+
+Check current API requirements, attribution, quotas, licensing and usage restrictions.
+
+Do not hardcode API keys or bypass service restrictions.
+
+Do not bundle a source that is not permitted for the intended use.
+
+Display the required attribution for every active map source.
+
+## 8.3 Radar overlays
+
+Support actual available weather layers, such as:
+- Precipitation radar.
+- Rain intensity.
+- Cloud cover, if supported.
+- Temperature or other weather layers where a suitable provider exists.
+
+Each layer must have its own actual data source.
+
+If a provider supplies time-stamped radar frames:
+- Display a time legend.
+- Implement a timeline slider.
+- Allow playback and pause.
+- Allow stepping between frames.
+- Show frame timestamps.
+- Handle missing frames.
+- Clearly distinguish the latest available frame from forecast data.
+
+Do not animate one static radar image and call it live radar.
+
+## 8.4 Map interaction
+
+Implement:
+- Pinch-to-zoom.
+- Pan.
+- Map rotation where supported.
+- Current-location control.
+- Search for a location.
+- Tap-to-inspect where meaningful data exists.
+- Layer selection.
+- Basemap selection.
+- Map attribution.
+- Loading indicators.
+- Offline and error states.
+
+Make all controls work on the actual map.
+
+Ensure map gestures do not conflict unnecessarily with the app's navigation.
+
+## 8.5 Map performance
+
+Avoid downloading enormous tile collections.
+
+Respect provider caching rules and quotas.
+
+Cancel unnecessary tile or overlay requests.
+
+Do not continuously refresh the map while it is hidden.
+
+If a map provider requires configuration or a key, show a useful setup state rather than an empty map.
+
+---
+
+# 9. MUCH STRONGER GYROSCOPE PARALLAX
+
+The current parallax effect is too weak.
+
+Make it noticeably more expressive while keeping it smooth and comfortable.
+
+## 9.1 Motion model
+
+Use the Android rotation vector sensor where available.
+
+Use a stable sensor-processing approach that avoids jitter and abrupt jumps.
+
+Implement layered parallax:
+- Foreground weather objects move the most.
+- Midground clouds and objects move moderately.
+- Background sky and distant scenery move subtly.
+- Additional atmospheric elements can move at different rates.
+
+Use smooth interpolation and clamp movement to safe limits.
+
+Do not tilt the text or temperature so much that readability suffers.
+
+## 9.2 Customization
+
+Provide a real parallax control in Settings:
+- Off.
+- Subtle.
+- Balanced.
+- Strong.
+- Custom intensity slider, if practical.
+
+The Strong option must be clearly more visible than the current implementation.
+
+Apply intensity consistently to supported illustrations.
+
+Allow the user to preview the effect in Settings.
+
+## 9.3 Lifecycle and accessibility
+
+- Subscribe to sensors only when appropriate.
+- Stop sensor processing when the relevant screen is not visible.
+- Handle devices without suitable sensors.
+- Prevent sudden jumps after resuming the app.
+- Avoid unnecessary battery consumption.
+- Respect reduced-motion preferences.
+- Keep a static fallback available.
+
+Do not simulate sensor movement using random animations.
+
+## 9.4 Animation controls
+
+Also provide:
+- Global animation toggle.
+- Weather animation toggle.
+- Parallax toggle.
+- Animation intensity.
+- Reduced-motion mode.
+- Optional static artwork mode.
+
+Every control must change actual behaviour.
+
+---
+
+# 10. PROFESSIONAL WEATHER ARTWORK
+
+The current weather images look cheap.
+
+Improve the visual assets without redesigning the UI.
+
+Do not replace the artwork with emoji, random clip art, blurry stock images or inconsistent AI-generated images.
+
+## 10.1 Visual direction
+
+Use a coherent illustration system inspired by polished contemporary weather applications.
+
+Aim for:
+- Carefully composed scenes.
+- Consistent lighting.
+- Attractive depth.
+- High-quality gradients where appropriate.
+- Smooth silhouettes.
+- Deliberate colour palettes.
+- Consistent perspective.
+- Rich but restrained detail.
+- Strong foreground, midground and background separation.
+
+Keep the current Atmos design and integrate the improved assets into its existing hero.
+
+## 10.2 Weather states
+
+Create a coherent set for:
+- Clear daytime.
+- Partly cloudy.
+- Overcast.
+- Rain.
+- Heavy rain.
+- Thunderstorms.
+- Snow.
+- Fog.
+- Clear night.
+- Partly cloudy night.
+- Windy conditions.
+
+Provide appropriate day/night variations where useful.
+
+Do not use the exact same image for every condition.
+
+## 10.3 Asset implementation
+
+Prefer lightweight original vector illustrations or optimised raster assets, depending on visual quality and performance.
+
+Use layered assets where necessary for parallax.
+
+Keep the asset style consistent across:
+- Hero illustrations.
+- Hourly forecast icons.
+- Daily forecast icons.
+- Empty states.
+- Radar loading states.
+
+Do not make the entire application depend on downloading large remote images.
+
+Bundle essential artwork with the app.
+
+Use sensible fallbacks if an asset is missing.
+
+Avoid unnecessary network requests and memory usage.
+
+If you can generate or create improved original assets, integrate them into the actual project. Do not merely describe assets that have not been created.
+
+---
+
+# 11. LOCATION MANAGEMENT
+
+Make the Locations screen fully functional.
+
+Implement:
+- Search for cities and supported places.
+- Select search results.
+- Add saved locations.
+- Remove locations.
+- Reorder saved locations.
+- Set a default location.
+- Switch between locations.
+- Swipe between saved locations on the home screen.
+- Show the active location clearly.
+- Display location-specific weather.
+- Display local time information where appropriate.
+
+Persist locations locally.
+
+Use stable identifiers where possible, such as provider-supported location IDs or reliable coordinates.
+
+Handle duplicate locations.
+
+Do not assume that every location has the same forecast capabilities.
+
+The user must be able to use the app entirely through manually selected locations without granting location permission.
+
+---
+
+# 12. BACKGROUND REFRESH AND WIDGETS
+
+Implement background functionality only when it can work reliably within Android's rules.
+
+## 12.1 Background refresh
+
+Use WorkManager for appropriate periodic refresh operations.
+
+Allow the user to configure reasonable refresh intervals within system limitations.
+
+Explain that Android may delay periodic work due to battery optimisation, Doze or other scheduling constraints.
+
+Do not claim that WorkManager provides exact-minute scheduling.
+
+Avoid excessive network requests.
+
+Use network constraints where appropriate.
+
+Respect the user's saved provider and location settings.
+
+## 12.2 Home-screen widgets
+
+If the project supports a proper native Android implementation, create functional Android home-screen widgets.
+
+Possible widgets:
+- Current weather.
+- Current temperature and condition.
+- Hourly forecast.
+- Compact daily forecast.
+
+Widgets must:
+- Show actual cached weather data.
+- Update through a real refresh mechanism.
+- Handle unavailable data.
+- Link into the appropriate Atmos screen.
+- Respect the selected units and location.
+- Adapt to available widget sizes.
+
+Use the appropriate Android widget technology for the project.
+
+Do not create a fake widget preview and claim the widget is implemented.
+
+If widget implementation is too large for the current pass, complete the core app first and leave a clearly documented implementation checklist for widgets.
+
+---
+
+# 13. DATA, STORAGE AND RELIABILITY
+
+Keep the existing native architecture where sound. Improve it where necessary.
+
+Preferred technologies:
+- Kotlin.
+- Jetpack Compose.
+- Material 3.
+- MVVM.
+- Repository pattern.
+- Kotlin Coroutines and Flow.
+- Ktor Client.
+- Kotlin Serialization.
+- Room.
+- DataStore.
+- WorkManager.
+
+Requirements:
+- Persistent user settings.
+- Persistent saved locations.
+- Cached weather.
+- Provider configuration.
+- Safe API-key handling.
+- Request cancellation.
+- Network timeouts.
+- Proper error states.
+- Database migrations.
+- Lifecycle-aware sensor processing.
+- No hardcoded production weather data.
+
+Use stable, compatible dependency versions and verify the actual Gradle build.
+
+Do not blindly upgrade every dependency to its latest version if doing so breaks compatibility.
+
+---
+
+# 14. ACCESSIBILITY AND USER EXPERIENCE
+
+Keep Atmos polished and easy to use.
+
+Implement:
+- Proper touch targets.
+- Content descriptions.
+- Accessible sliders and switches.
+- Screen-reader labels.
+- Text scaling.
+- Sufficient contrast.
+- Clear loading and error messages.
+- Reduced-motion support.
+- Haptic feedback preferences.
+- Responsive layouts.
+- Sensible empty states.
+
+Ensure that customization does not break the layout at different screen sizes or text scales.
+
+---
+
+# 15. TESTING — PROVE THE FEATURES WORK
+
+Do not consider a feature complete just because it compiles or looks correct.
+
+Write and run appropriate tests.
+
+## Weather tests
+- Provider response parsing.
+- Provider selection.
+- API failure.
+- Invalid API keys.
+- Missing forecast fields.
+- Rate limiting.
+- Cache fallback.
+- Unit conversion.
+- Stale-data handling.
+
+## Permissions tests
+- Approximate location.
+- Precise location.
+- Denied permission.
+- Permanently denied permission.
+- Notification permission denied.
+- Permission revoked in Android settings.
+- Manual location without GPS permission.
+
+## UI tests
+- Navigation.
+- Settings persistence.
+- Theme changes.
+- Unit changes.
+- Saved locations.
+- Provider selection.
+- Radar layer controls.
+- Parallax intensity controls.
+- Alert details.
+- Refresh actions.
+
+## Background tests
+- WorkManager scheduling.
+- Network unavailable.
+- Duplicate alerts.
+- Expired alerts.
+- Notification cancellation.
+- Battery-conscious operation.
+
+## Map tests
+- Map loading.
+- Pan and zoom.
+- Basemap switching.
+- Radar layer switching.
+- Tile errors.
+- Missing radar frames.
+- Attribution display.
+
+Run the available automated test suite and build tasks.
+
+Fix errors rather than merely reporting them.
+
+If a feature cannot be tested in the current environment, state exactly what remains unverified.
+
+---
+
+# 16. IMPLEMENTATION ORDER
+
+Work directly in the existing project.
+
+## Phase 1 — Audit and functional fixes
+
+- Inspect all files.
+- Map all screens and controls.
+- Find dead buttons and placeholder logic.
+- Fix navigation.
+- Connect settings to actual state.
+- Preserve the existing UI.
+
+## Phase 2 — Real data
+
+- Audit the current provider.
+- Implement provider interfaces.
+- Add configurable providers.
+- Implement real forecasts.
+- Implement error handling.
+- Implement caching.
+- Add source and freshness information.
+
+## Phase 3 — Permissions
+
+- Audit AndroidManifest.xml.
+- Add only justified permissions.
+- Implement runtime permission flows.
+- Implement the Permissions screen.
+- Test denial and revocation.
+- Implement optional background functionality appropriately.
+
+## Phase 4 — Radar and maps
+
+- Integrate the selected map engine.
+- Configure permitted OSM and Esri sources.
+- Integrate a real radar-data source.
+- Implement layers and map interactions.
+- Display correct attribution.
+- Test map failures.
+
+## Phase 5 — Alerts
+
+- Integrate actual alert sources.
+- Build alert models and repositories.
+- Implement the alerts screen.
+- Implement notification channels.
+- Implement appropriate background checks.
+- Test duplicates and expiry.
+
+## Phase 6 — Customization
+
+- Implement theme options.
+- Implement layout customization.
+- Implement metric-card customization.
+- Implement units.
+- Implement animation settings.
+- Persist all preferences.
+- Test every setting.
+
+## Phase 7 — Parallax and artwork
+
+- Improve the weather illustrations.
+- Create layered assets.
+- Strengthen the parallax effect.
+- Add the intensity controls.
+- Verify sensor lifecycle behaviour.
+- Test reduced motion.
+
+## Phase 8 — Verification
+
+- Run tests.
+- Build the app.
+- Fix compilation failures.
+- Fix crashes.
+- Check navigation.
+- Test settings persistence.
+- Test offline operation.
+- Verify that every implemented control works.
+
+---
+
+# 17. Strict requirements
+
+- Do not redesign the approved UI.
+- Do not deliver another static mockup.
+- Do not fake API responses in production.
+- Do not fake radar.
+- Do not fake permissions.
+- Do not make decorative buttons appear functional.
+- Do not claim an alert was delivered unless the implementation supports that claim.
+- Do not request unnecessary sensitive permissions.
+- Do not bypass API restrictions.
+- Do not hardcode private credentials.
+- Do not remove working features.
+- Do not leave silent placeholders.
+- Do not silently ignore errors.
+- Do not claim a successful build without actually verifying it.
+- Do not stop after generating a plan.
+
+**Make the actual code changes.**
+
+If you cannot finish every feature in one execution, complete the foundational work first, preserve progress in the repository, and provide a precise checklist of implemented, tested and remaining work.
+
+# Definition of done
+
+Atmos is ready for its next release only when:
+
+1. Its approved UI remains visually intact.
+2. All existing visible controls have been audited.
+3. Core navigation works.
+4. Real weather data is displayed.
+5. Providers can be configured and selected.
+6. Android permission flows work correctly.
+7. Map interactions work.
+8. OSM and Esri basemaps work where configured and permitted.
+9. Radar uses an actual radar-data source.
+10. Weather alerts come from real alert sources.
+11. Customization settings change actual application behaviour.
+12. Gyroscope parallax is noticeably stronger and configurable.
+13. Weather artwork has a consistent, professional visual style.
+14. Cached data and offline states work.
+15. The app handles missing permissions, data and network connectivity.
+16. Automated tests and the available build checks have been run.
+17. Any remaining limitations are clearly documented.
+
+**Final instruction: Preserve the beautiful Atmos UI. Make everything behind it real. Prioritise functional code, reliable data, deep customization and a polished user experience over adding more decorative UI.**

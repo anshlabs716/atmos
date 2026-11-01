@@ -19,11 +19,9 @@ class AtmosApplication : Application() {
         super.onCreate()
         preferencesManager = PreferencesManager(this)
         weatherCache = WeatherCache(this)
-        val provider = OpenMeteoProvider()
         weatherRepository = WeatherRepository(
             preferencesManager = preferencesManager,
-            weatherCache = weatherCache,
-            provider = provider
+            weatherCache = weatherCache
         )
     }
 }

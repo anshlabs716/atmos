@@ -14,11 +14,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import app.atmos.weather.data.model.ParallaxIntensity
 
 data class ParallaxOffset(
     val pitch: Float = 0f, // vertical tilt [-1f, 1f]
-    val roll: Float = 0f   // horizontal tilt [-1f, 1f]
-)
+    val roll: Float = 0f,  // horizontal tilt [-1f, 1f]
+    val multiplier: Float = 1f
+) {
+    val effectivePitch: Float get() = pitch * multiplier
+    val effectiveRoll: Float get() = roll * multiplier
+}
 
 class GyroscopeTracker(context: Context) : SensorEventListener {
 
@@ -33,10 +38,15 @@ class GyroscopeTracker(context: Context) : SensorEventListener {
     private val rotationMatrix = FloatArray(9)
     private val orientationAngles = FloatArray(3)
 
-    // Exponential smoothing factor (alpha)
-    private val smoothing = 0.12f
+    // Exponential smoothing factor (alpha) - responsive yet smooth
+    private val smoothing = 0.15f
     private var smoothedPitch = 0f
     private var smoothedRoll = 0f
+    private var currentMultiplier = 1f
+
+    fun setMultiplier(multiplier: Float) {
+        currentMultiplier = multiplier
+    }
 
     fun start() {
         if (!isListening && rotationSensor != null) {
@@ -53,7 +63,7 @@ class GyroscopeTracker(context: Context) : SensorEventListener {
         if (isListening) {
             sensorManager?.unregisterListener(this)
             isListening = false
-            _parallaxOffset.value = ParallaxOffset(0f, 0f)
+            _parallaxOffset.value = ParallaxOffset(0f, 0f, currentMultiplier)
             smoothedPitch = 0f
             smoothedRoll = 0f
         }
@@ -71,7 +81,7 @@ class GyroscopeTracker(context: Context) : SensorEventListener {
             val pitch = orientationAngles[1]
             val roll = orientationAngles[2]
 
-            // Normalize to approximately [-1f, 1f] for typical phone tilt range (~45 degrees)
+            // Normalize to approximately [-1.5f, 1.5f] for typical phone tilt range (~45 degrees)
             val targetPitch = (pitch / 0.785f).coerceIn(-1.5f, 1.5f)
             val targetRoll = (roll / 0.785f).coerceIn(-1.5f, 1.5f)
 
@@ -81,7 +91,8 @@ class GyroscopeTracker(context: Context) : SensorEventListener {
 
             _parallaxOffset.value = ParallaxOffset(
                 pitch = smoothedPitch,
-                roll = smoothedRoll
+                roll = smoothedRoll,
+                multiplier = currentMultiplier
             )
         }
     }
@@ -91,17 +102,21 @@ class GyroscopeTracker(context: Context) : SensorEventListener {
 
 @Composable
 fun rememberGyroscopeParallax(
-    enabled: Boolean = true,
+    intensity: ParallaxIntensity = ParallaxIntensity.BALANCED,
     reducedMotion: Boolean = false
 ): State<ParallaxOffset> {
     val context = LocalContext.current
     val tracker = remember { GyroscopeTracker(context) }
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    DisposableEffect(lifecycleOwner, enabled, reducedMotion) {
+    val enabled = intensity != ParallaxIntensity.OFF && !reducedMotion
+
+    DisposableEffect(lifecycleOwner, intensity, reducedMotion) {
+        tracker.setMultiplier(if (enabled) intensity.multiplier else 0f)
+
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
-                if (enabled && !reducedMotion) {
+                if (enabled) {
                     tracker.start()
                 }
             } else if (event == Lifecycle.Event.ON_PAUSE) {
@@ -111,9 +126,7 @@ fun rememberGyroscopeParallax(
 
         lifecycleOwner.lifecycle.addObserver(observer)
 
-        if (enabled && !reducedMotion &&
-            lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
-        ) {
+        if (enabled && lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
             tracker.start()
         }
 
@@ -123,9 +136,9 @@ fun rememberGyroscopeParallax(
         }
     }
 
-    return if (enabled && !reducedMotion) {
+    return if (enabled) {
         tracker.parallaxOffset
     } else {
-        remember { mutableStateOf(ParallaxOffset(0f, 0f)) }
+        remember { mutableStateOf(ParallaxOffset(0f, 0f, 0f)) }
     }
 }

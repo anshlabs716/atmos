@@ -49,7 +49,9 @@ class MainActivity : ComponentActivity() {
 
             AtmosTheme(
                 darkTheme = isDark,
-                dynamicColor = preferences.dynamicColor
+                dynamicColor = preferences.dynamicColor,
+                palette = preferences.themePalette,
+                cornerRadius = preferences.cornerRadius
             ) {
                 AppNavigation(
                     weatherViewModel = weatherViewModel,

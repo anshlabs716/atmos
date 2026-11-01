@@ -56,10 +56,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.atmos.weather.data.model.LocationItem
 import app.atmos.weather.data.model.WeatherOverview
 import app.atmos.weather.sensors.rememberGyroscopeParallax
+import androidx.compose.material.icons.filled.Info
 import app.atmos.weather.ui.components.AirQualityCard
 import app.atmos.weather.ui.components.DailyForecastSection
 import app.atmos.weather.ui.components.DetailMetricCards
 import app.atmos.weather.ui.components.HourlyForecastSection
+import app.atmos.weather.ui.components.MoonCard
 import app.atmos.weather.ui.components.PrecipitationSection
 import app.atmos.weather.ui.components.SunriseSunsetArc
 import app.atmos.weather.ui.components.WeatherAlertBanner
@@ -82,7 +84,7 @@ fun WeatherScreen(
     val selectedLocation by viewModel.selectedLocation.collectAsStateWithLifecycle()
 
     val parallax = rememberGyroscopeParallax(
-        enabled = preferences.gyroscopeParallaxEnabled,
+        intensity = preferences.parallaxIntensity,
         reducedMotion = preferences.reducedMotion
     )
 
@@ -412,54 +414,67 @@ private fun WeatherContent(
                 tempUnit = preferences.tempUnit,
                 parallax = parallax,
                 animationsEnabled = preferences.animationsEnabled,
+                animationIntensity = preferences.animationIntensity,
                 reducedMotion = preferences.reducedMotion
             )
         }
 
         // 3. Hourly Forecast Cards
-        item {
-            HourlyForecastSection(
-                hourly = overview.hourly,
-                tempUnit = preferences.tempUnit
-            )
+        if (preferences.homeSections.showHourly) {
+            item {
+                HourlyForecastSection(
+                    hourly = overview.hourly,
+                    tempUnit = preferences.tempUnit
+                )
+            }
         }
 
         // 4. Precipitation Cards
-        item {
-            PrecipitationSection(
-                todayDaily = overview.daily.firstOrNull(),
-                upcomingHourly = overview.hourly
-            )
+        if (preferences.homeSections.showPrecipitation) {
+            item {
+                PrecipitationSection(
+                    todayDaily = overview.daily.firstOrNull(),
+                    upcomingHourly = overview.hourly,
+                    precipUnit = preferences.precipUnit
+                )
+            }
         }
 
         // 5. Seven-Day Forecast Rows
-        item {
-            DailyForecastSection(
-                daily = overview.daily,
-                tempUnit = preferences.tempUnit
-            )
+        if (preferences.homeSections.showDaily) {
+            item {
+                DailyForecastSection(
+                    daily = overview.daily,
+                    tempUnit = preferences.tempUnit
+                )
+            }
         }
 
         // 6. Mixed-size Weather Detail Cards
-        item {
-            DetailMetricCards(
-                current = overview.current,
-                tempUnit = preferences.tempUnit,
-                speedUnit = preferences.speedUnit,
-                pressureUnit = preferences.pressureUnit
-            )
+        if (preferences.homeSections.showDetails) {
+            item {
+                DetailMetricCards(
+                    current = overview.current,
+                    tempUnit = preferences.tempUnit,
+                    speedUnit = preferences.speedUnit,
+                    pressureUnit = preferences.pressureUnit,
+                    visibilityUnit = preferences.visibilityUnit
+                )
+            }
         }
 
         // 7. Sunrise and Sunset Arc
-        item {
-            SunriseSunsetArc(
-                data = overview.sunriseSunset,
-                parallax = parallax
-            )
+        if (preferences.homeSections.showSunriseSunset) {
+            item {
+                SunriseSunsetArc(
+                    data = overview.sunriseSunset,
+                    parallax = parallax
+                )
+            }
         }
 
         // 8. Air Quality Card
-        if (overview.airQuality != null) {
+        if (preferences.homeSections.showAirQuality && overview.airQuality != null) {
             item {
                 AirQualityCard(airQuality = overview.airQuality)
             }
@@ -475,7 +490,7 @@ private fun WeatherContent(
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
-                    text = "Weather data provided by Open-Meteo.com",
+                    text = "Weather data provided by ${preferences.providerType.displayName}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

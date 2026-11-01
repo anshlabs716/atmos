@@ -51,7 +51,48 @@ class WeatherUnitTest {
     fun testPressureUnitConversion() {
         val hpa = 1013.25
         assertEquals("1013 hPa", PressureUnit.HPA.format(hpa))
+        assertEquals("1013 mbar", PressureUnit.MBAR.format(hpa))
         assertTrue(PressureUnit.INHG.format(hpa).contains("inHg"))
+        assertTrue(PressureUnit.MMHG.format(hpa).contains("mmHg"))
+    }
+
+    @Test
+    fun testPrecipitationUnitConversion() {
+        val mm = 25.4
+        assertTrue(app.atmos.weather.data.model.PrecipitationUnit.MILLIMETERS.format(mm).contains("25.4 mm"))
+        assertTrue(app.atmos.weather.data.model.PrecipitationUnit.INCHES.format(mm).contains("1.0 in"))
+    }
+
+    @Test
+    fun testVisibilityUnitConversion() {
+        val km = 10.0
+        assertTrue(app.atmos.weather.data.model.VisibilityUnit.KILOMETERS.format(km).contains("10.0 km"))
+        assertTrue(app.atmos.weather.data.model.VisibilityUnit.MILES.format(km).contains("6.2 mi"))
+    }
+
+    @Test
+    fun testKnotsWindSpeed() {
+        val speedKmh = 18.52
+        assertTrue(WindSpeedUnit.KNOTS.format(speedKmh).contains("kn"))
+    }
+
+    @Test
+    fun testParallaxIntensityMultipliers() {
+        assertEquals(0.0f, app.atmos.weather.data.model.ParallaxIntensity.OFF.multiplier, 0.001f)
+        assertEquals(1.0f, app.atmos.weather.data.model.ParallaxIntensity.SUBTLE.multiplier, 0.001f)
+        assertEquals(2.2f, app.atmos.weather.data.model.ParallaxIntensity.BALANCED.multiplier, 0.001f)
+        assertEquals(4.5f, app.atmos.weather.data.model.ParallaxIntensity.STRONG.multiplier, 0.001f)
+    }
+
+    @Test
+    fun testHomeScreenSectionConfigDefaults() {
+        val config = app.atmos.weather.data.model.HomeScreenSectionConfig()
+        assertTrue(config.showHourly)
+        assertTrue(config.showPrecipitation)
+        assertTrue(config.showDaily)
+        assertTrue(config.showDetails)
+        assertTrue(config.showSunriseSunset)
+        assertTrue(config.showAirQuality)
     }
 
     @Test

@@ -59,7 +59,41 @@ enum class WeatherCondition(
                 else -> PARTLY_CLOUDY
             }
         }
+
+        fun toPlainEnglishDescription(code: Int, isDay: Boolean, precipProb: Int = 0): String {
+            return when (code) {
+                0 -> if (isDay) "Clear, sunny skies" else "Clear skies tonight"
+                1 -> if (isDay) "Mainly sunny with clear skies" else "Mostly clear night"
+                2 -> "A mix of sun and clouds"
+                3 -> "Cloudy skies all day"
+                45, 48 -> "Foggy conditions with reduced visibility"
+                51, 53 -> "Light patchy drizzle"
+                55 -> "Steady dense drizzle"
+                56, 57 -> "Freezing drizzle"
+                61 -> if (precipProb < 50) "A few light showers are possible" else "Light rain expected"
+                63 -> "Moderate rain throughout the area"
+                65 -> "Heavy rainfall and wet conditions"
+                66, 67 -> "Freezing rain with icy surfaces"
+                71, 77 -> "Light snow flurries"
+                73 -> "Steady moderate snowfall"
+                75 -> "Heavy snowfall with snow accumulation"
+                80, 81 -> "Scattered passing rain showers"
+                82 -> "Violent torrential downpours"
+                85, 86 -> "Passing snow showers"
+                95 -> "Thunderstorms with active lightning"
+                96, 99 -> "Severe thunderstorms with hail"
+                else -> if (isDay) "Partly sunny" else "Partly cloudy tonight"
+            }
+        }
     }
+}
+
+@Serializable
+enum class PressureTrend(val label: String, val shortDescription: String) {
+    RISING("Rising", "Generally brings improving, more settled weather"),
+    FALLING("Falling", "Often accompanies incoming clouds, wind, or rain"),
+    STEADY("Steady", "Stable atmospheric conditions persisting"),
+    UNKNOWN("Steady", "Atmospheric baseline")
 }
 
 @Serializable
@@ -76,7 +110,9 @@ data class CurrentWeather(
     val uvIndex: Double,
     val visibility: Double,
     val dewPoint: Double,
-    val timestamp: Long
+    val timestamp: Long,
+    val pressureTrend: PressureTrend = PressureTrend.STEADY,
+    val plainEnglishDescription: String = ""
 )
 
 @Serializable
@@ -128,5 +164,7 @@ data class WeatherOverview(
     val airQuality: AirQualityData? = null,
     val alerts: List<WeatherAlert> = emptyList(),
     val isCached: Boolean = false,
-    val fetchedAtEpochMillis: Long = System.currentTimeMillis()
+    val fetchedAtEpochMillis: Long = System.currentTimeMillis(),
+    val moonData: MoonData? = null,
+    val daySummary: String = ""
 )

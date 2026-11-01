@@ -1,8 +1,9 @@
 package app.atmos.weather.ui.theme
 
 import androidx.compose.ui.graphics.Color
+import app.atmos.weather.data.model.ThemePalette
 
-// Primary Atmospheric Palette - Light
+// Primary Atmospheric Palette - Atmos Blue (Default)
 val md_theme_light_primary = Color(0xFF1E5BB0)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFFD6E3FF)
@@ -28,7 +29,6 @@ val md_theme_light_onSurfaceVariant = Color(0xFF43474E)
 val md_theme_light_outline = Color(0xFF73777F)
 val md_theme_light_outlineVariant = Color(0xFFC3C7D0)
 
-// Primary Atmospheric Palette - Dark
 val md_theme_dark_primary = Color(0xFFA8C8FF)
 val md_theme_dark_onPrimary = Color(0xFF003063)
 val md_theme_dark_primaryContainer = Color(0xFF00468C)
@@ -53,6 +53,27 @@ val md_theme_dark_surfaceVariant = Color(0xFF222936)
 val md_theme_dark_onSurfaceVariant = Color(0xFFC3C7D0)
 val md_theme_dark_outline = Color(0xFF8D919A)
 val md_theme_dark_outlineVariant = Color(0xFF43474E)
+
+// Curated Palettes: Primary Accents
+fun getPalettePrimary(palette: ThemePalette, isDark: Boolean): Color {
+    return when (palette) {
+        ThemePalette.ATMOS_BLUE -> if (isDark) Color(0xFFA8C8FF) else Color(0xFF1E5BB0)
+        ThemePalette.EMERALD_AURORA -> if (isDark) Color(0xFF81DDB3) else Color(0xFF006C4C)
+        ThemePalette.SUNSET_CORAL -> if (isDark) Color(0xFFFFB5A0) else Color(0xFFA03F25)
+        ThemePalette.LAVENDER_DUSK -> if (isDark) Color(0xFFD0BCFF) else Color(0xFF6750A4)
+        ThemePalette.OBSIDIAN_SLATE -> if (isDark) Color(0xFFC4C7C5) else Color(0xFF3B4856)
+    }
+}
+
+fun getPalettePrimaryContainer(palette: ThemePalette, isDark: Boolean): Color {
+    return when (palette) {
+        ThemePalette.ATMOS_BLUE -> if (isDark) Color(0xFF00468C) else Color(0xFFD6E3FF)
+        ThemePalette.EMERALD_AURORA -> if (isDark) Color(0xFF005138) else Color(0xFF9DF7CE)
+        ThemePalette.SUNSET_CORAL -> if (isDark) Color(0xFF7F2811) else Color(0xFFFFDAD2)
+        ThemePalette.LAVENDER_DUSK -> if (isDark) Color(0xFF4F378A) else Color(0xFFE9DDFF)
+        ThemePalette.OBSIDIAN_SLATE -> if (isDark) Color(0xFF2E3B48) else Color(0xFFD6E4F0)
+    }
+}
 
 // Weather Atmospheric Tones
 val WeatherSunGold = Color(0xFFFDB813)

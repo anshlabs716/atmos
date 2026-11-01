@@ -31,11 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import app.atmos.weather.data.model.DailyForecast
 import app.atmos.weather.data.model.HourlyForecast
+import app.atmos.weather.data.model.PrecipitationUnit
 
 @Composable
 fun PrecipitationSection(
     todayDaily: DailyForecast?,
     upcomingHourly: List<HourlyForecast>,
+    precipUnit: PrecipitationUnit,
     modifier: Modifier = Modifier
 ) {
     val maxProb = todayDaily?.precipitationProbabilityMax ?: 0
@@ -96,7 +98,7 @@ fun PrecipitationSection(
                 if (totalAmount > 0.0) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "%.1f mm".format(totalAmount),
+                            text = precipUnit.format(totalAmount),
                             style = MaterialTheme.typography.titleLarge,
                             color = MaterialTheme.colorScheme.primary
                         )

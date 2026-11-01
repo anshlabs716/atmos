@@ -1,6 +1,7 @@
 package app.atmos.weather.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,13 +14,21 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material.icons.outlined.Warning
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,6 +45,8 @@ fun WeatherAlertBanner(
 ) {
     if (alerts.isEmpty()) return
 
+    var selectedAlertForDetails by remember { mutableStateOf<WeatherAlert?>(null) }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -47,9 +58,10 @@ fun WeatherAlertBanner(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(24.dp))
-                    .testTag("weather_alert_banner"),
+                    .clickable { selectedAlertForDetails = alert }
+                    .testTag("weather_alert_banner_${alert.id}"),
                 colors = CardDefaults.cardColors(
-                    containerColor = alertColor.copy(alpha = 0.15f)
+                    containerColor = alertColor.copy(alpha = 0.16f)
                 ),
                 shape = RoundedCornerShape(24.dp)
             ) {
@@ -108,20 +120,109 @@ fun WeatherAlertBanner(
                         Text(
                             text = alert.description,
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 2
                         )
 
-                        if (alert.expiresTime.isNotBlank()) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (alert.expiresTime.isNotBlank()) {
+                                Text(
+                                    text = "Expires ${alert.expiresTime}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = alertColor.copy(alpha = 0.9f),
+                                    fontSize = 10.sp
+                                )
+                            }
                             Text(
-                                text = "Expires ${alert.expiresTime}",
+                                text = "Tap for details →",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = alertColor.copy(alpha = 0.9f),
-                                fontSize = 10.sp
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 11.sp
                             )
                         }
                     }
                 }
             }
         }
+    }
+
+    // Alert Details Dialog
+    selectedAlertForDetails?.let { alert ->
+        val alertColor = alert.severity.color
+
+        AlertDialog(
+            onDismissRequest = { selectedAlertForDetails = null },
+            title = {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .background(alertColor, CircleShape)
+                    )
+                    Text(
+                        text = alert.title,
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                }
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Surface(
+                        color = alertColor.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Text(
+                            text = "${alert.severity.displayName.uppercase()} • Issued by ${alert.source}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = alertColor,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Affected Area: ${alert.affectedArea}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    if (alert.effectiveTime.isNotBlank() || alert.expiresTime.isNotBlank()) {
+                        Text(
+                            text = "Timing: ${alert.effectiveTime} — ${alert.expiresTime}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Text(
+                        text = "Description:\n${alert.description}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        text = "Safety Advice:\n${alert.instruction}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedAlertForDetails = null }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 }

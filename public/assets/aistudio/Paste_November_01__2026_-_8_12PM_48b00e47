@@ -1,0 +1,903 @@
+# ATMOS — THE COMPLETE WEATHER APP OVERHAUL
+## Functionality, Accuracy, Real-Time Atmosphere, Radar, Permissions, Customization & Premium Polish
+
+You are working on my existing Android weather application, **Atmos**.
+
+**Tagline:** Weather, beautifully understood.
+
+Atmos is a privacy-first, open-source Android weather app built with Kotlin, Jetpack Compose, and Material 3. Its design should feel like Pixel Weather, Apple Weather, and Breezy came together to create something even better.
+
+The current UI looks beautiful. However, major features are incomplete, inaccurate, nonfunctional, confusing, or poorly implemented.
+
+Your job is to turn the EXISTING PROJECT into a genuinely functional, polished, competitive weather application.
+
+**This is an implementation task, not a brainstorming task. Inspect the code, identify the problems, modify the actual project, run available checks, and verify what works.**
+
+---
+
+# 1. ABSOLUTE RULES
+
+1. Preserve the existing UI design that has already been approved. Do not throw it away and generate a generic weather dashboard.
+2. Improve the existing screens and artwork rather than replacing the entire design system.
+3. Do not use fake weather data, mock radar maps, placeholder functionality, fabricated forecasts, or hardcoded locations in production.
+4. Every visible button, card, toggle, menu item, selector, and interactive element must work or clearly communicate why it is unavailable.
+5. Do not claim a feature is complete unless you have implemented and tested it.
+6. Prioritize actual weather accuracy, working maps, real location names, moving weather illustrations, and useful customization.
+7. Keep the app privacy-first, open-source, free of advertisements, free of subscriptions, and usable without an account.
+8. Do not require users to configure an API key just to get started when a suitable provider works without one.
+9. Do not ask me to manually configure the app after installation when a sensible automatic default can be used.
+10. Do not add unnecessary permissions, nearby-device discovery, Bluetooth scanning, phone-state access, or unrelated functionality.
+11. Do not replace a working feature with a visual imitation.
+12. Inspect the existing code before deciding what to rewrite. Reuse working components and fix the underlying architecture where necessary.
+
+**Important:** Do not merely return a plan, code snippets, or a mockup. Implement the changes directly in the existing project wherever the environment permits. If something cannot be completed, explain precisely what remains incomplete and why.
+
+# 2. FIRST: AUDIT THE ENTIRE EXISTING PROJECT
+
+Before changing the UI, inspect:
+
+- The current project structure and Gradle configuration.
+- AndroidManifest.xml and all declared permissions.
+- Current weather-provider integrations.
+- Location acquisition and geocoding.
+- Weather models and unit conversions.
+- Forecast and observation timestamps.
+- Weather refresh and caching.
+- Radar and map implementation.
+- Sunrise, sunset, moonrise, and moonset calculations or data sources.
+- Animated weather illustrations.
+- Settings and customization controls.
+- Notifications and background work.
+- Error handling and loading states.
+- Navigation and every clickable component.
+- Existing tests and build errors.
+
+Produce a concise internal checklist of defects and then begin fixing them. Do not stop after producing the checklist.
+
+Find the root cause of inaccurate weather, frozen clouds, missing radar maps, nonfunctional permission controls, and any other broken features.
+
+# 3. REAL WEATHER DATA AND ACCURACY
+
+Weather accuracy is a top priority.
+
+## Multiple real weather providers
+
+Build a proper provider architecture supporting multiple real providers suitable for worldwide use.
+
+Investigate and integrate suitable providers such as:
+
+- Open-Meteo, including appropriate forecast and observation products.
+- National meteorological services where their APIs are accessible and licensing permits.
+- Additional globally useful weather services with appropriate geographic coverage.
+- Optional user-configured providers that require API keys.
+
+These are candidates to evaluate, not a requirement to integrate every provider regardless of quality, availability, licensing, or technical feasibility.
+
+Requirements:
+
+- The app must work out of the box using a sensible default provider that does not require a user-supplied key.
+- Users must be able to choose between available providers in Settings.
+- Show which provider supplies the current conditions and forecast.
+- Clearly distinguish current observations, model-based estimates, and forecasts.
+- Do not treat a forecast as a live observation.
+- Handle provider-specific coverage and limitations.
+- Implement sensible timeouts, retries, caching, rate-limit handling, and error messages.
+- Keep API keys out of source control. Store user-provided credentials securely where practical.
+- Do not silently send location information to unnecessary third parties.
+- Display required attribution and respect provider terms.
+- Never silently merge incompatible forecasts or units from different providers.
+
+Where supported, provide an optional comparison mode showing forecasts from multiple providers side by side. Do not average incompatible weather predictions into a misleading result.
+
+## Fix inaccurate weather
+
+Investigate why the existing weather is inaccurate.
+
+Check for:
+
+- Incorrect coordinates.
+- Wrong location or timezone.
+- UTC versus local-time mistakes.
+- Incorrect units or conversion formulas.
+- Stale cached data presented as current.
+- Forecast timestamps being mistaken for observation timestamps.
+- Incorrect handling of missing values.
+- Incorrect weather-code mappings.
+- Incorrect hourly and daily aggregation.
+- Incorrect precipitation probability and amounts.
+- Incorrect sunrise and sunset dates.
+- Incorrect daylight-saving handling.
+- Incorrect selection of a nearby weather station or forecast grid.
+
+Add a visible last-updated timestamp and an honest indication when data is stale.
+
+Never invent missing values. Display “Unavailable” where appropriate.
+
+# 4. REAL LOCATION NAMES AND AUTOMATIC LOCATION
+
+The current location must display a human-readable place name instead of raw latitude and longitude.
+
+Examples of appropriate output include:
+
+- Perth
+- Rockingham
+- Wellard
+- Tokyo
+
+Use reverse geocoding to resolve the current coordinates into a locality, suburb, city, or other useful place name.
+
+Requirements:
+
+- Obtain the device's current location when the user grants location permission.
+- Prefer an appropriate accuracy level without constantly draining the battery.
+- Provide a clear manual location selector and saved locations as a fallback.
+- Show a meaningful place name, not coordinates, on the main weather screen.
+- Preserve the selected saved location when the user chooses it manually.
+- Distinguish the device's current location from a manually selected city.
+- Handle denied permissions, unavailable GPS, offline conditions, and geocoding failures.
+- Do not repeatedly request location permission after denial.
+- Refresh the weather when the device moves sufficiently far or when a refresh is otherwise appropriate.
+- Do not continuously poll GPS in the background.
+
+Background location must only be used if the implemented features genuinely require it. If background location is justified, explain its purpose and request it using Android's required permission flow. A user must not be forced to grant background access just to see the weather.
+
+# 5. REAL-TIME DAY/NIGHT AND WEATHER-AWARE ARTWORK
+
+The artwork currently shows daytime conditions even when it is dark outside. Fix this completely.
+
+The illustration system must respond to actual conditions at the selected location and the current local time.
+
+Account for:
+
+- Local sunrise and sunset.
+- Civil twilight where useful.
+- Current local time.
+- Current weather conditions.
+- Nighttime cloud cover.
+- Rain, storms, fog, snow, and clear skies.
+- Moonrise and moonset where available.
+- The selected location's timezone.
+
+Examples:
+
+- A clear night should display a beautiful nighttime sky, stars where appropriate, and a moon when appropriate.
+- A cloudy night should not show an unrealistically bright daytime sky.
+- A sunny afternoon should show a daylight illustration.
+- Rain and storms should have appropriately atmospheric artwork.
+- Dawn and dusk should have distinct lighting.
+- Weather changes should transition smoothly instead of abruptly switching images.
+
+Do not decide whether it is day or night based solely on the device's clock. Use the selected location's local time and solar information.
+
+## Higher-quality illustrations
+
+The current weather images look cheap. Improve their quality substantially.
+
+Create a coherent visual art direction with:
+
+- Beautiful, professionally composed weather scenes.
+- Consistent lighting, proportions, rendering style, and visual quality.
+- Carefully designed clouds, sun, moon, stars, rain, and atmospheric effects.
+- Appropriate colors for day, night, dawn, and dusk.
+- Proper scaling and cropping on different screen sizes.
+- Lightweight assets suitable for Android.
+- A consistent visual language throughout the application.
+
+Do not mix unrelated clip art, random stock images, low-quality generated images, and inconsistent illustration styles.
+
+Prefer original artwork or assets with compatible licenses. Include necessary asset attribution.
+
+Do not load huge images from remote URLs on every screen render. Bundle suitable assets or cache remote assets appropriately.
+
+# 6. ACTUALLY ANIMATED CLOUDS AND WEATHER
+
+The clouds currently do not move.
+
+Implement genuinely animated weather scenes rather than static pictures with the word “animated” attached.
+
+Requirements:
+
+- Clouds drift smoothly across the scene.
+- Multiple cloud layers can move at different speeds for depth.
+- Rain falls naturally when appropriate.
+- Snowfall, when supported, is visually appropriate.
+- Lightning effects are subtle and used only for relevant storm conditions.
+- Stars and nighttime atmospheric effects appear where appropriate.
+- Sunlight and atmospheric colors transition smoothly.
+- The moon and sun can have subtle movement or depth effects where appropriate.
+- Animations remain visually restrained and do not distract from weather information.
+
+## Gyroscope parallax
+
+The existing parallax should be much more noticeable when enabled.
+
+Provide:
+
+- Adjustable parallax intensity, including Off, Subtle, Medium, Strong, and Maximum.
+- Smooth, clamped sensor input.
+- A proper neutral position.
+- A toggle to enable or disable sensor-based movement.
+- Battery-friendly sensor sampling.
+- Reduced-motion support.
+- A graceful fallback when the device lacks a suitable rotation sensor.
+- No unnecessary sensor usage while the relevant screen is not visible.
+
+Parallax should create convincing depth between foreground, clouds, sky, and celestial objects without making text difficult to read.
+
+# 7. MOONRISE, MOONSET, MOON PHASES, AND MOON ARTWORK
+
+Add a dedicated moon section and integrate useful moon information into the main screen where it fits the existing design.
+
+Display:
+
+- Moonrise time.
+- Moonset time.
+- Current moon phase.
+- Moon illumination percentage.
+- A clear visual moon-phase illustration.
+- The next relevant moon event, where available.
+- The date and local timezone associated with the data.
+
+Use a reliable astronomical calculation or suitable data source. Correctly handle dates, timezones, locations, and cases where the moon does not rise or set on a particular local date.
+
+## Moon artwork
+
+Show a beautiful moon illustration for the current conditions and selected date.
+
+The moon must not appear simply because the clock says it is night. Consider its phase, illumination, and whether it is above the horizon when reliable data is available.
+
+The image must be appropriate for the date and location. Do not claim that a decorative illustration is a live photograph of the actual moon.
+
+If an actual photograph is available from a properly licensed source, it can be offered as an optional enhancement, but the main illustration system must work offline and must not depend on downloading a new photograph every day.
+
+# 8. SUNRISE AND SUNSET — KEEP WHAT ALREADY LOOKS GOOD
+
+The existing sunset projection is one of the best parts of the UI. Preserve it.
+
+Improve the section by adding:
+
+- A beautiful sun illustration.
+- The existing visual solar-position arc.
+- Sunrise and sunset times.
+- Current solar position based on local time.
+- Dawn and dusk information where useful.
+- A clear indication of whether the sun is above or below the horizon.
+- Smooth, subtle animation where appropriate.
+- Correct handling of polar and unusual daylight conditions.
+
+Do not destroy the existing projection design or replace it with a generic chart.
+
+# 9. PLAIN-ENGLISH WEATHER DESCRIPTIONS
+
+The current descriptions are too technical and sometimes confusing.
+
+Replace unnecessarily technical descriptions with concise, natural language.
+
+Examples:
+
+- “Overcast” → “Cloudy skies all day.”
+- “Scattered showers” → “A few showers are possible.”
+- “Partly cloudy” → “A mix of sun and clouds.”
+- “High precipitation probability” → “Rain is likely.”
+- “Elevated UV index” → “UV is high today — protect your skin.”
+- “Pressure: 1008 hPa” → “Air pressure: 1008 hPa. Slightly below average.”
+
+Use descriptions appropriate to the actual forecast. Do not claim rain is certain when only a small chance exists.
+
+Provide a short summary of the day, such as:
+
+- “A hot, sunny day.”
+- “Sunny with a chance of showers.”
+- “Cloudy with occasional rain.”
+- “Cool and breezy.”
+- “Rain likely this afternoon.”
+- “Clear skies tonight.”
+
+The description must be generated from actual weather data, not from a fixed list randomly assigned to conditions.
+
+Use a proper weather-code mapping and, when appropriate, combine temperature, precipitation probability, wind, and timing into the summary.
+
+Keep wording concise and understandable to everyday users.
+
+# 10. EXPLAIN AIR PRESSURE PROPERLY
+
+The pressure card is currently confusing.
+
+Keep the data but explain it in language that ordinary users can understand.
+
+Display:
+
+- Current pressure and units.
+- Whether pressure is rising, falling, or stable, only when enough historical data exists.
+- A short plain-English explanation.
+- Optional expanded information for users who want more detail.
+
+For example:
+
+“Air pressure measures the force of the atmosphere. Changes in pressure can be associated with changing weather, but pressure alone cannot tell you exactly what will happen.”
+
+Explain that:
+
+- Higher or rising pressure often accompanies more settled weather.
+- Lower or falling pressure can be associated with unsettled weather.
+- Local weather patterns vary, so pressure is not a guarantee of sunshine or rain.
+
+Do not label pressure “good” or “bad.” Do not invent a trend from a single measurement.
+
+Keep the main card clean and easy to understand. Place the longer explanation behind a working info button or expandable detail.
+
+Apply the same principle to any other technical metric: retain useful data while explaining what it means.
+
+# 11. UV INDEX AND SENSITIVE-SKIN ALERTS
+
+Add a useful UV index feature.
+
+Display:
+
+- Current UV index when available.
+- Forecast UV index throughout the day.
+- A clear category: Low, Moderate, High, Very High, or Extreme.
+- A simple color-coded indicator with accessible labels.
+- The expected peak UV time where forecast data supports it.
+- A contextual alert when UV reaches relevant levels.
+
+Include a user-configurable UV sensitivity setting. Users who select sensitive skin should be able to receive earlier, more cautious reminders.
+
+Possible reminders include:
+
+- “UV is high today. Consider shade and sun protection.”
+- “UV levels may be uncomfortable for sensitive skin. Take extra care outdoors.”
+
+Requirements:
+
+- Base alerts on real UV data.
+- Make the sensitivity setting optional and editable.
+- Do not ask users to disclose medical information.
+- Do not claim that an alert predicts a sunburn or provides medical advice.
+- Respect notification permissions and quiet hours.
+- Do not send duplicate notifications every refresh.
+- Clearly explain when UV information is unavailable.
+
+# 12. PRESSURE, HUMIDITY, WIND, VISIBILITY, AND PRECIPITATION
+
+Review all existing weather metric cards.
+
+Each metric must have:
+
+- A readable name.
+- A correctly formatted value and unit.
+- A concise explanation where useful.
+- An appropriate icon or visualization.
+- A working expanded-detail interaction if one is shown.
+- Graceful handling of unavailable data.
+
+For precipitation, distinguish between probability and expected amount.
+
+For wind, display speed and direction clearly. Gusts should not be confused with sustained wind.
+
+For humidity, explain relative humidity in understandable terms.
+
+For visibility, explain the distance at which objects can be seen clearly when useful.
+
+Do not invent values to fill empty cards. Hide unavailable optional metrics or explicitly label them as unavailable.
+
+Keep the existing expressive Material 3 design.
+
+# 13. REAL RADAR AND A WORKING MAP
+
+**Radar is currently broken and does not even show a map. This is a critical defect.**
+
+Fix the entire radar experience.
+
+The radar screen must display an actual map with a working map renderer, valid map tiles, useful controls, and a real weather-radar overlay when the selected data provider supports it.
+
+## Map basemaps
+
+Support suitable basemap choices, including:
+
+- OpenStreetMap-based maps.
+- Esri basemaps, subject to their usage terms and availability.
+
+Do not confuse a basemap with a radar layer. A normal map displaying roads is not weather radar.
+
+Respect each tile provider's attribution, licensing, caching, and usage restrictions. Do not assume that all Esri services or all OpenStreetMap tile servers allow unrestricted production use.
+
+If a provider requires an API key or service agreement, explain that requirement and offer a usable alternative when possible.
+
+## Radar data
+
+Investigate suitable real radar-data sources with appropriate geographic coverage.
+
+The app should use genuine weather-radar imagery or tiles, not fabricated colored blobs.
+
+Requirements:
+
+- Working map rendering.
+- Real radar overlay.
+- Play/pause animation controls.
+- A timeline or frame selector.
+- A visible timestamp for each radar frame.
+- Appropriate animation speed.
+- Zoom and pan gestures.
+- A working button to return to the current location.
+- A working layer selector.
+- Clear loading and error states.
+- Correct attribution.
+- Cache recent frames where licensing allows.
+- Handle regions with no radar coverage honestly.
+- Distinguish radar observations from forecast precipitation.
+
+Investigate whether a selected provider supplies radar for the user's region. Radar coverage is not universal.
+
+For Australia, investigate appropriate official or licensed weather-radar sources. For other countries, support suitable regional sources where feasible.
+
+Do not show a blank screen indefinitely. If radar data is unavailable, keep the map usable and explain the limitation.
+
+If animated radar forecasts are available from a licensed source, support them separately from observed radar.
+
+## Additional map layers
+
+Where real data and licensing permit, consider:
+
+- Precipitation.
+- Temperature.
+- Wind.
+- Cloud cover.
+- Satellite imagery.
+- Severe weather alerts.
+
+Only show a layer as available when its data source is actually connected and working.
+
+# 14. SEVERE WEATHER ALERTS AND NOTIFICATIONS
+
+Implement real weather alerts rather than static example cards.
+
+Use appropriate official or licensed alert sources for the selected region.
+
+Requirements:
+
+- Display active alerts relevant to the selected location.
+- Clearly show the issuing authority, severity, affected area, issue time, and expiration time where available.
+- Explain the alert in understandable language.
+- Link to the official source when available.
+- Avoid duplicates and expired alerts.
+- Update alert state when the data refreshes.
+- Do not fabricate alerts when the provider has no alert data.
+- Clearly distinguish official warnings from Atmos-generated informational reminders.
+
+Support optional notifications for relevant severe weather and UV reminders.
+
+Notifications must be user-configurable, respect Android notification permission requirements, and avoid spamming the user.
+
+# 15. FIRST LAUNCH AND ANDROID PERMISSIONS
+
+The app should be ready to use immediately after installation, without a long setup wizard or a requirement to configure a provider.
+
+On the first launch:
+
+1. Initialize the app.
+2. Explain and request foreground location permission when needed to provide local weather.
+3. Request other necessary permissions at the appropriate time.
+4. Resolve the location into a human-readable place name.
+5. Load real weather data automatically.
+6. Display the existing home screen with real information.
+
+Do not force the user through a lengthy configuration flow.
+
+## Important Android permission limitations
+
+Do not pretend Android allows apps to grant themselves arbitrary permissions.
+
+Request permissions that are genuinely needed, explain their purpose, and handle denial gracefully.
+
+Evaluate the following individually:
+
+- Internet access.
+- Network state access.
+- Coarse and fine location.
+- Background location, only if genuinely required by a supported background-location feature.
+- Notifications.
+- Vibration.
+- Foreground service permissions, only for an actual qualifying foreground service.
+- Boot-completed receiver, only if required for a real feature.
+- Wake lock, only if required for a legitimate operation.
+- Battery-optimization exemption, only if a genuinely necessary feature justifies the special request.
+
+Do not request nearby-device permissions simply because they exist. Atmos does not need Bluetooth or nearby-device discovery for ordinary weather forecasts, location, radar, or weather notifications.
+
+Do not request phone-state permissions unless a clearly justified feature actually requires them.
+
+## Background updates
+
+Implement appropriate background refresh using WorkManager or another suitable Android mechanism.
+
+Allow users to configure refresh frequency within Android's scheduling constraints.
+
+Respect Doze mode, battery restrictions, and system scheduling.
+
+Do not promise exact refresh intervals that Android cannot guarantee.
+
+## Battery optimization
+
+The current battery-optimization option does not work and may not even be present in the UI.
+
+Investigate the actual implementation.
+
+If a battery-optimization control is justified:
+
+- Make the setting visible only where appropriate.
+- Check the current system state before showing its status.
+- Open the correct Android system settings screen when supported.
+- Handle devices where the relevant intent or screen is unavailable.
+- Explain the consequences of exempting the app.
+- Do not repeatedly nag the user.
+- Do not silently attempt to bypass Android's restrictions.
+
+Background weather updates should work as reliably as Android permits without requiring unnecessary exemptions.
+
+## Location privacy
+
+Explain that location is used to retrieve local weather and resolve the displayed place name.
+
+Keep location access local whenever possible, and send only the necessary information to the selected weather or geocoding provider.
+
+Do not transmit location to analytics or advertising systems.
+
+# 16. SETTINGS AND CUSTOMIZATION — A MAJOR FEATURE
+
+The current customization options are insufficient.
+
+Build a comprehensive but organized Settings experience using the existing Material 3 design language.
+
+Avoid dumping dozens of unrelated toggles onto a single screen.
+
+Organize settings into logical categories.
+
+## Appearance
+
+Provide options for:
+
+- Light, dark, and system theme.
+- Dynamic Material You colors where supported.
+- Alternative app color schemes.
+- Weather illustration style where multiple styles exist.
+- Animation intensity.
+- Parallax intensity.
+- Reduced motion.
+- Compact or comfortable information density.
+- Temperature units.
+- Wind speed units.
+- Pressure units.
+- Visibility units.
+- Precipitation units.
+- Time format.
+- Week-start preference.
+
+All settings must be saved persistently and applied immediately where practical.
+
+## Home screen customization
+
+Allow users to:
+
+- Reorder supported weather cards.
+- Hide optional cards.
+- Show or hide individual sections.
+- Choose which metrics appear first.
+- Adjust information density.
+- Configure the hourly forecast's presentation where supported.
+- Configure the daily forecast's presentation where supported.
+- Choose which location is displayed by default.
+- Control the visibility of sunrise, sunset, moon, pressure, UV, and air-quality sections.
+
+Do not allow users to hide essential navigation or make the app unusable.
+
+## Weather behavior
+
+Allow configuration of:
+
+- Default weather provider.
+- Automatic versus manual refresh.
+- Refresh frequency within platform constraints.
+- Severe weather notifications.
+- UV notifications.
+- UV sensitivity preference.
+- Quiet hours.
+- Background refresh behavior.
+- Location update behavior.
+
+## App icon customization
+
+Add an app icon selector if it can be implemented properly.
+
+Provide a selection of attractive, coherent Atmos icons, including light, dark, and alternative weather-themed designs where appropriate.
+
+Use supported Android launcher activity aliases or another legitimate implementation. Ensure the icons actually change on the launcher, persist as expected, and work across supported launchers.
+
+Explain any platform-specific limitations. Do not present a static icon preview as a completed icon-switching feature.
+
+## Provider settings
+
+Provide:
+
+- Provider selection.
+- Provider status.
+- Available feature capabilities.
+- API-key configuration for providers that genuinely require it.
+- Connection-test buttons.
+- Clear validation errors.
+- Save and cancel controls.
+- Required attribution and privacy information.
+
+A provider connection test must actually contact the provider and report a meaningful result. Do not show a success message without a successful test.
+
+Do not require an API key for the default provider if a suitable no-key option is available.
+
+## Settings reliability
+
+Every toggle, dropdown, selector, button, and input must work.
+
+Persist settings across process death and device restarts.
+
+Do not implement settings that merely change their own visual state without affecting app behavior.
+
+# 17. CLICKABLE EVERYTHING
+
+Audit the entire app for dead interactions.
+
+Test:
+
+- Every weather card.
+- Every information icon.
+- Every button.
+- Every menu.
+- Every dropdown.
+- Every tab.
+- Every settings switch.
+- Every provider selector.
+- Every location selector.
+- Every radar control.
+- Every notification preference.
+- Every app-icon option.
+- Every expandable section.
+- Every interactive weather visualization.
+
+Each element must either perform the advertised action or be clearly disabled with an understandable reason.
+
+Avoid invisible touch targets and confusing overlapping gestures.
+
+Use accessible touch targets, content descriptions, semantic labels, keyboard accessibility where appropriate, and adequate text contrast.
+
+Provide meaningful loading, success, empty, and error states.
+
+Do not use placeholder links, dead-end navigation, or decorative buttons that appear functional.
+
+# 18. BOTTOM NAVIGATION AND REPOSITORY LINK
+
+Keep the existing bottom navigation:
+
+- Weather.
+- Radar.
+- Locations.
+- Settings.
+
+Ensure each destination is fully implemented and navigation state behaves correctly.
+
+Reserve a subtle, clean area in Settings or the About section for a future link to my source repository.
+
+**Do not invent a repository URL or add a fake link.** I will provide the real repository URL later.
+
+For now, implement the appropriate reusable link component or a clearly marked, non-clickable placeholder that does not look like a working link. Make it easy to connect the real URL later.
+
+Keep the interface focused on weather, not social links or unnecessary promotion.
+
+# 19. LOCATIONS
+
+Make the Locations screen genuinely useful.
+
+Implement:
+
+- Automatic current location.
+- Human-readable place names.
+- Search for cities and localities.
+- Saved locations.
+- Add and remove locations.
+- Reorder saved locations where appropriate.
+- Switch between locations.
+- Swipe between saved locations from the weather screen.
+- A clear indication of the currently selected location.
+- Correct local time for each location.
+- Per-location weather refresh.
+- Persistent saved locations.
+
+Avoid duplicate entries and raw coordinates in the main UI.
+
+If geocoding fails, explain the failure and offer retry or manual alternatives.
+
+# 20. REAL WEATHER-APP QUALITY
+
+Atmos must feel like a complete weather app, not a beautiful prototype.
+
+Implement:
+
+- Current conditions.
+- Hourly forecasts.
+- Daily forecasts.
+- Feels-like temperature.
+- High and low temperatures.
+- Precipitation probability and amount.
+- Wind and gusts.
+- Humidity.
+- Pressure.
+- UV index.
+- Visibility.
+- Sunrise and sunset.
+- Moonrise and moonset.
+- Moon phases.
+- Air quality where a suitable provider is available.
+- Severe weather alerts where a suitable source is available.
+- A real radar/map experience where regional data is available.
+
+Do not pretend every provider supports every feature. Make provider capabilities explicit.
+
+If air quality, radar, moon information, or official alerts cannot be retrieved from the current provider, use an appropriate independent source or clearly show the feature's actual availability.
+
+# 21. ARCHITECTURE AND MAINTAINABILITY
+
+Preserve the existing architecture if it is sound. Improve it where needed.
+
+Use appropriate separation between:
+
+- UI.
+- ViewModels.
+- Repositories.
+- Weather-provider implementations.
+- Location and geocoding services.
+- Astronomy calculations or services.
+- Radar/map data sources.
+- Persistent settings.
+- Background workers.
+- Notifications.
+- Domain and data models.
+
+Use Kotlin coroutines and flows appropriately.
+
+Use dependency injection if it fits the existing project.
+
+Use Room for structured persistent data when needed and DataStore for preferences.
+
+Use robust networking, serialization, caching, cancellation, and error handling.
+
+Do not perform network requests or expensive computations directly inside composable rendering functions.
+
+Do not collect location or sensor data indefinitely when it is no longer needed.
+
+Do not add unnecessary libraries or create a huge abstraction layer without a clear purpose.
+
+Keep the project maintainable and compatible with its declared Android SDK requirements.
+
+# 22. TESTING AND VERIFICATION
+
+After implementing the changes, verify the actual project.
+
+Run the relevant Gradle tasks available in the environment, including compilation and tests.
+
+Add or update tests for:
+
+- Weather-code descriptions.
+- Unit conversions.
+- Timezone and date handling.
+- Sunrise and sunset display logic.
+- Moonrise, moonset, and phase calculations where applicable.
+- Weather-provider parsing.
+- Missing or malformed provider data.
+- Location-name handling.
+- Settings persistence.
+- UV alert thresholds and duplicate suppression.
+- Radar timeline and loading/error states.
+- Background refresh scheduling.
+- Permission-denial handling.
+
+Test the app's loading, offline, stale-data, unavailable-provider, and permission-denied states.
+
+Inspect the final UI for regressions.
+
+Where an emulator or device is available, test the most important real interactions.
+
+Do not claim that device-specific functionality was tested if you only compiled the source code.
+
+If a test fails, investigate and fix it rather than hiding the failure.
+
+# 23. IMPLEMENTATION PRIORITIES
+
+Work in this order so the most important failures are fixed first.
+
+**Priority 1 — Core reliability**
+- Fix inaccurate weather.
+- Fix location acquisition and reverse geocoding.
+- Fix provider integration and error handling.
+- Fix all dead controls.
+- Fix first-launch permissions.
+- Fix basic weather refresh and persistence.
+
+**Priority 2 — Radar and real-world data**
+- Implement a working map.
+- Connect a real radar data source.
+- Verify radar coverage and attribution.
+- Implement actual map controls and timeline playback.
+- Implement reliable weather alerts.
+
+**Priority 3 — Atmosphere and astronomy**
+- Fix day/night detection.
+- Replace poor-quality illustrations.
+- Implement moving clouds and weather effects.
+- Improve parallax.
+- Add sun artwork.
+- Add moonrise, moonset, phases, illumination, and appropriate moon artwork.
+
+**Priority 4 — Useful information**
+- Simplify weather descriptions.
+- Clarify pressure and other technical metrics.
+- Add UV information and optional sensitive-skin reminders.
+- Improve missing-data and stale-data communication.
+
+**Priority 5 — Customization and final polish**
+- Add comprehensive settings.
+- Add working app icon selection.
+- Add home-screen card customization.
+- Improve location management.
+- Add the future repository-link component without inventing a URL.
+- Refine accessibility, performance, and animation behavior.
+
+# 24. FINAL ACCEPTANCE CRITERIA
+
+Atmos is not finished simply because it compiles or looks good in a screenshot.
+
+The overhaul must aim to satisfy these conditions:
+
+- Real weather data loads automatically without mandatory API-key setup.
+- Current weather and forecasts display the correct location and local times.
+- The current location has a readable place name.
+- Day/night artwork matches the selected location's actual local conditions.
+- Clouds genuinely move when animation is enabled.
+- Parallax has useful adjustable intensity.
+- Moonrise, moonset, moon phase, and moon illumination work or clearly report unavailable data.
+- Sunrise and sunset retain their beautiful projection and gain appropriate sun artwork.
+- Weather descriptions are understandable.
+- Pressure and other technical metrics have useful explanations.
+- UV information and optional reminders work.
+- The radar screen displays a real map.
+- Radar imagery comes from a genuine data source when available.
+- Map controls work.
+- Permission requests follow Android's rules and are not repeated unnecessarily.
+- Background updates behave honestly within Android's limitations.
+- The settings actually change app behavior and persist.
+- App icon switching genuinely works on supported launchers.
+- All visible controls have functional behavior.
+- The existing visual identity is preserved and polished.
+- Errors and unavailable features are handled gracefully.
+- Build and test results are reported honestly.
+
+# 25. HOW TO EXECUTE THIS TASK
+
+Do not stop after describing how you would implement these features.
+
+Inspect the project, identify the real problems, and make changes directly.
+
+Implement the highest-priority features first, then continue through the remaining priorities. If the project is too large to modify in one pass, work in coherent phases while keeping the app buildable.
+
+If external credentials, licensed data, unavailable services, or device-only testing prevent completion of a feature, implement everything possible without fabricating success, document the exact limitation, and provide the best legitimate fallback.
+
+At the end, provide:
+
+1. A summary of actual changes made.
+2. A list of previously broken features that are now fixed.
+3. The providers and real data sources actually integrated.
+4. The permissions added and the reason for each.
+5. The features that are genuinely functional.
+6. The features that remain incomplete and the exact reason.
+7. Build and test results, including failures.
+8. Any required manual steps, only where genuinely unavoidable.
+
+**The final objective: Atmos should retain its gorgeous existing visual identity while becoming a reliable, accurate, animated, customizable, privacy-first weather app that can genuinely compete with Breezy, Pixel Weather, and Apple Weather.**
+
+Do not sacrifice functionality for screenshots. Do not sacrifice the existing design for generic functionality. Deliver both.

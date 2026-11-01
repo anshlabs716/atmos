@@ -1,5 +1,11 @@
 package app.atmos.weather.ui.locations
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -14,9 +20,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,9 +29,14 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.LocationCity
 import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,10 +53,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.atmos.weather.data.model.LocationItem
 
@@ -57,11 +68,40 @@ fun LocationsScreen(
     onLocationSelected: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val savedLocations by viewModel.savedLocations.collectAsStateWithLifecycle()
     val selectedLocationId by viewModel.selectedLocationId.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
     val searchResults by viewModel.searchResults.collectAsStateWithLifecycle()
     val isSearching by viewModel.isSearching.collectAsStateWithLifecycle()
+    val isLocating by viewModel.isLocating.collectAsStateWithLifecycle()
+
+    // Real Android Location Permission Launcher
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true
+        val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+
+        if (fineGranted || coarseGranted) {
+            viewModel.requestCurrentGpsLocation(
+                context = context,
+                onSuccess = {
+                    Toast.makeText(context, "Location updated successfully", Toast.LENGTH_SHORT).show()
+                    onLocationSelected()
+                },
+                onError = { err ->
+                    Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                }
+            )
+        } else {
+            Toast.makeText(
+                context,
+                "Location permission denied. You can continue using manual city search.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
 
     Column(
         modifier = modifier
@@ -111,7 +151,75 @@ fun LocationsScreen(
             )
         )
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // "Use Current GPS Location" Button
+        Button(
+            onClick = {
+                val hasFine = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+                val hasCoarse = ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+
+                if (hasFine || hasCoarse) {
+                    viewModel.requestCurrentGpsLocation(
+                        context = context,
+                        onSuccess = {
+                            Toast.makeText(context, "Location updated successfully", Toast.LENGTH_SHORT).show()
+                            onLocationSelected()
+                        },
+                        onError = { err ->
+                            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+                        }
+                    )
+                } else {
+                    locationPermissionLauncher.launch(
+                        arrayOf(
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+            },
+            enabled = !isLocating,
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag("use_current_location_btn"),
+            shape = RoundedCornerShape(20.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (isLocating) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.MyLocation,
+                        contentDescription = "GPS Location",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Text(
+                    text = if (isLocating) "Acquiring GPS fix…" else "Use Current Device Location",
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         // Search Results Dropdown List
         AnimatedVisibility(visible = searchResults.isNotEmpty()) {
@@ -165,7 +273,7 @@ fun LocationsScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         // Header
         Row(
@@ -179,13 +287,14 @@ fun LocationsScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Tap to switch",
+                text = "Tap to switch • Arrows to reorder",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontSize = 11.sp
             )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Saved Locations List
         LazyColumn(
@@ -193,17 +302,21 @@ fun LocationsScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             contentPadding = PaddingValues(bottom = 20.dp)
         ) {
-            items(savedLocations, key = { it.id }) { loc ->
+            itemsIndexed(savedLocations, key = { _, it -> it.id }) { index, loc ->
                 val isSelected = loc.id == selectedLocationId
                 SavedLocationCard(
                     location = loc,
                     isSelected = isSelected,
                     canDelete = savedLocations.size > 1,
+                    canMoveUp = index > 0,
+                    canMoveDown = index < savedLocations.size - 1,
                     onSelect = {
                         viewModel.selectLocation(loc.id)
                         onLocationSelected()
                     },
-                    onDelete = { viewModel.removeLocation(loc.id) }
+                    onDelete = { viewModel.removeLocation(loc.id) },
+                    onMoveUp = { viewModel.moveLocationUp(index) },
+                    onMoveDown = { viewModel.moveLocationDown(index) }
                 )
             }
 
@@ -241,8 +354,12 @@ private fun SavedLocationCard(
     location: LocationItem,
     isSelected: Boolean,
     canDelete: Boolean,
+    canMoveUp: Boolean,
+    canMoveDown: Boolean,
     onSelect: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onMoveUp: () -> Unit,
+    onMoveDown: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -258,11 +375,12 @@ private fun SavedLocationCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
+                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -276,7 +394,7 @@ private fun SavedLocationCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isSelected) Icons.Default.Check else Icons.Default.LocationOn,
+                        imageVector = if (isSelected) Icons.Default.Check else if (location.isCurrentLocation) Icons.Default.MyLocation else Icons.Default.LocationOn,
                         contentDescription = if (isSelected) "Active location" else "Location",
                         tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(18.dp)
@@ -297,16 +415,47 @@ private fun SavedLocationCard(
                 }
             }
 
-            if (canDelete) {
-                IconButton(
-                    onClick = onDelete,
-                    modifier = Modifier.testTag("delete_location_${location.name}")
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.DeleteOutline,
-                        contentDescription = "Delete location",
-                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
-                    )
+            // Reorder and Delete Controls
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (canMoveUp) {
+                    IconButton(
+                        onClick = onMoveUp,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowUp,
+                            contentDescription = "Move up",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                if (canMoveDown) {
+                    IconButton(
+                        onClick = onMoveDown,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.KeyboardArrowDown,
+                            contentDescription = "Move down",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                if (canDelete) {
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .testTag("delete_location_${location.name}")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = "Delete location",
+                            tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f)
+                        )
+                    }
                 }
             }
         }

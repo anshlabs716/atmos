@@ -42,6 +42,16 @@ import androidx.compose.ui.unit.sp
 import app.atmos.weather.data.model.CurrentWeather
 import app.atmos.weather.data.model.PressureUnit
 import app.atmos.weather.data.model.TemperatureUnit
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import app.atmos.weather.data.model.PressureTrend
+import app.atmos.weather.data.model.VisibilityUnit
 import app.atmos.weather.data.model.WindSpeedUnit
 
 @Composable
@@ -50,8 +60,14 @@ fun DetailMetricCards(
     tempUnit: TemperatureUnit,
     speedUnit: WindSpeedUnit,
     pressureUnit: PressureUnit,
+    visibilityUnit: VisibilityUnit,
     modifier: Modifier = Modifier
 ) {
+    var showPressureDialog by remember { mutableStateOf(false) }
+    var showUvDialog by remember { mutableStateOf(false) }
+    var showWindDialog by remember { mutableStateOf(false) }
+    var showHumidityDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -73,12 +89,14 @@ fun DetailMetricCards(
                 speedKmh = current.windSpeed,
                 direction = current.windDirection,
                 speedUnit = speedUnit,
+                onClick = { showWindDialog = true },
                 modifier = Modifier.weight(1f)
             )
 
             // UV Index Card
             UvIndexFeatureCard(
                 uvIndex = current.uvIndex,
+                onClick = { showUvDialog = true },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -93,6 +111,7 @@ fun DetailMetricCards(
                 value = tempUnit.format(current.apparentTemperature),
                 subtitle = if (current.apparentTemperature > current.temperature) "Humid & warmer" else "Wind & cooler",
                 icon = Icons.Outlined.DeviceThermostat,
+                onClick = {},
                 modifier = Modifier.weight(1f)
             )
 
@@ -101,6 +120,7 @@ fun DetailMetricCards(
                 value = "${current.humidity}%",
                 subtitle = "Dew point is ${tempUnit.format(current.dewPoint)}",
                 icon = Icons.Outlined.Opacity,
+                onClick = { showHumidityDialog = true },
                 modifier = Modifier.weight(1f)
             )
         }
@@ -110,22 +130,147 @@ fun DetailMetricCards(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            val pressureComparison = if (current.pressure >= 1013.25) "Above standard" else "Below standard"
             CompactMetricCard(
-                title = "Pressure",
+                title = "Air Pressure",
                 value = pressureUnit.format(current.pressure),
-                subtitle = "Barometric reading",
+                subtitle = "${current.pressureTrend.label} • $pressureComparison",
                 icon = Icons.Outlined.Compress,
+                onClick = { showPressureDialog = true },
                 modifier = Modifier.weight(1f)
             )
 
             CompactMetricCard(
                 title = "Visibility",
-                value = "%.1f km".format(current.visibility),
-                subtitle = if (current.visibility >= 10.0) "Perfect clear view" else "Moderate visibility",
+                value = visibilityUnit.format(current.visibility),
+                subtitle = if (current.visibility >= 10.0) "Clear view (>10 km)" else "Moderate haze",
                 icon = Icons.Outlined.Visibility,
+                onClick = {},
                 modifier = Modifier.weight(1f)
             )
         }
+    }
+
+    // Pressure Explanation Dialog
+    if (showPressureDialog) {
+        AlertDialog(
+            onDismissRequest = { showPressureDialog = false },
+            title = { Text("Understanding Air Pressure") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Current: ${pressureUnit.format(current.pressure)} (${current.pressureTrend.label})",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Air pressure measures the force of the atmosphere pressing down on Earth. Standard sea-level pressure is 1013.25 hPa.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "• Rising pressure: Generally associated with clearing skies and settling weather.\n• Falling pressure: Often accompanies incoming weather fronts, wind, and rain.\n• Steady pressure: Indicates stable current atmospheric conditions.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Pressure changes alone do not guarantee sunshine or rain, but observing trends helps anticipate shifts in weather.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showPressureDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
+    // UV Index Guide Dialog
+    if (showUvDialog) {
+        AlertDialog(
+            onDismissRequest = { showUvDialog = false },
+            title = { Text("UV Index & Sun Protection") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Current UV Level: %.1f".format(current.uvIndex),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "The UV Index measures the intensity of ultraviolet radiation from the sun. Peak UV levels typically occur between 11:00 AM and 3:00 PM.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "• 0-2 (Low): Minimal sun protection needed.\n• 3-5 (Moderate): Wear sunglasses and hat; seek shade around midday.\n• 6-7 (High): SPF 30+ sunscreen, sunglasses, and shade strongly advised.\n• 8-10 (Very High): Extra precaution required; avoid midday sun.\n• 11+ (Extreme): Unprotected skin can burn quickly. Stay shaded.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showUvDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
+    // Wind Guide Dialog
+    if (showWindDialog) {
+        AlertDialog(
+            onDismissRequest = { showWindDialog = false },
+            title = { Text("Wind Information") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "${speedUnit.format(current.windSpeed)} from ${getCompassDirectionText(current.windDirection)} (${current.windDirection.toInt()}°)",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Sustained wind is measured at a standard height of 10 meters above ground level. Weather alerts are issued when sustained winds exceed 50 km/h or hazardous gusts are observed.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showWindDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
+    }
+
+    // Humidity Guide Dialog
+    if (showHumidityDialog) {
+        AlertDialog(
+            onDismissRequest = { showHumidityDialog = false },
+            title = { Text("Humidity & Dew Point") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Relative Humidity: ${current.humidity}% • Dew Point: ${tempUnit.format(current.dewPoint)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Dew point is the temperature to which air must be cooled for water vapor to condense into dew or fog. A higher dew point feels more humid and oppressive, while lower dew points feel crisp and dry.",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showHumidityDialog = false }) {
+                    Text("Close")
+                }
+            }
+        )
     }
 }
 
@@ -134,6 +279,7 @@ private fun WindFeatureCard(
     speedKmh: Double,
     direction: Double,
     speedUnit: WindSpeedUnit,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val compassDir = getCompassDirectionText(direction)
@@ -141,6 +287,7 @@ private fun WindFeatureCard(
     Card(
         modifier = modifier
             .clip(RoundedCornerShape(28.dp))
+            .clickable { onClick() }
             .testTag("wind_feature_card"),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -212,6 +359,7 @@ private fun WindFeatureCard(
 @Composable
 private fun UvIndexFeatureCard(
     uvIndex: Double,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uvCategory = when {
@@ -233,6 +381,7 @@ private fun UvIndexFeatureCard(
     Card(
         modifier = modifier
             .clip(RoundedCornerShape(28.dp))
+            .clickable { onClick() }
             .testTag("uv_feature_card"),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -288,7 +437,7 @@ private fun UvIndexFeatureCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = if (uvIndex >= 6.0) "Protection required" else "Minimal sun protection",
+                    text = if (uvIndex >= 6.0) "Protection required • Tap for info" else "Minimal sun protection • Tap for info",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -303,11 +452,13 @@ private fun CompactMetricCard(
     value: String,
     subtitle: String,
     icon: ImageVector,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .clip(RoundedCornerShape(24.dp))
+            .clickable { onClick() }
             .testTag("metric_card_$title"),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
